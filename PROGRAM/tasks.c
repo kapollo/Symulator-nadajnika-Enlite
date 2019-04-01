@@ -201,103 +201,102 @@ uint8_t *encode_4b6b_command_params_for_Tx(uint8_t command,
 	uint16_t CRC16 = 0; //init tej zmiennej
 	uint8_t *input_data = NULL;
 	memset(table_for_CRC, 0, sizeof(table_for_CRC));
-	if (sizeof_params > 0) //wyliczenie iloœci danych do zakodowania 4b6b, gdy s¹ dodatkowe parametry
+	if (sizeof_params > 0) //wyliczenie ilości danych do zakodowania 4b6b, gdy są dodatkowe parametry
 	{
 		sizeof_input_data = sizeof(marker) + sizeof(flag) + sizeof(sensor_ID) + sizeof(command) + sizeof(sizeof_params) + sizeof_params + sizeof(CRC16); 
-		padding = 36; //plus powy¿ej wyliczone sizeof_input_data bêdzie rozmiarem tablicy wskazywanej przez seq_tablePtr 
+		padding = 36; //plus powyżej wyliczone sizeof_input_data będzie rozmiarem tablicy wskazywanej przez seq_tablePtr 
 	}
 	else //lub nie ma dodatkowych parametrów
 	{
 		sizeof_input_data = 1 + sizeof(sensor_ID) + sizeof(command) + sizeof(sizeof_params) + sizeof(CRC16); 
-		padding = 4; //plus powy¿ej wyliczone sizeof_input_data bêdzie rozmiarem tablicy wskazywanej przez seq_tablePtr 
+		padding = 4; //plus powyżej wyliczone sizeof_input_data będzie rozmiarem tablicy wskazywanej przez seq_tablePtr 
 	}
-	table_for_CRC[0] = marker[0]; //zerowy element tej tablicy przechowuje wartoœæ device type (teraz czujnika glikemii)
-	for (i = 0; i < sizeof(sensor_ID); i++) // w tej pêtli przepisanie do trzech kolejnych elementów tablicy table_for_CRC
-	{ //ca³ej tablicy pump_ID w sposób: pump_ID[]={a,b,c,d,e,f,} -> table_for_CRC[]={0xab, 0xcd, 0xef}
+	table_for_CRC[0] = marker[0]; //zerowy element tej tablicy przechowuje wartość device type (teraz czujnika glikemii)
+	for (i = 0; i < sizeof(sensor_ID); i++) // w tej pętli przepisanie do trzech kolejnych elementów tablicy table_for_CRC
+	{ //całej tablicy pump_ID w sposób: pump_ID[]={a,b,c,d,e,f,} -> table_for_CRC[]={0xab, 0xcd, 0xef}
 		if ((i % 2) == 0)
 			table_for_CRC[(i / 2) + 1] = sensor_ID[i];
 		else
 			table_for_CRC[(i / 2) + 1] = (table_for_CRC[(i / 2) + 1] << 4) | sensor_ID[i];
 	}
-	table_for_CRC[(i / 2) + 1] = command; //do nastêpnego elementu tej tablicy wpisywany jest bajt komendy
+	table_for_CRC[(i / 2) + 1] = command; //do następnego elementu tej tablicy wpisywany jest bajt komendy
   table_for_CRC[(i / 2) + 2] = page_nbr;
-	idx = (i / 2) + 3; //pocz¹tkowy indeks kolejnego wolnego elementu tablicy table_for_CRC
-	i = 0; //wyzerowanie licznika poni¿szej pêtli
+	idx = (i / 2) + 3; //początkowy indeks kolejnego wolnego elementu tablicy table_for_CRC
+	i = 0; //wyzerowanie licznika poniższej pętli
 	while ((sizeof_params > 0) && //gdy liczba dodatkowych parametrów > 0
-				 ((i + idx) < (sizeof_params + 6))) //i jeszcze nie wszystkie parametry zosta³y przepisane do tablicy table_for_CRC
+				 ((i + idx) < (sizeof_params + 6))) //i jeszcze nie wszystkie parametry zostały przepisane do tablicy table_for_CRC
 	{
 		table_for_CRC[idx + i] = paramsPtr[(idx - 6) + i]; //to przepisywanie parametrów do tablicy table_for_CRC
-		i++; //zwiêkszenie licznika pêtli
+		i++; //zwiększenie licznika pêtli
 	}
 	table_for_CRC[idx + i] = 0xFF; 
-	table_for_CRC[idx + i + 1] = 0xFF; //znacznik 0xFFFF koñca wype³nionej tablicy table_for_CRC
+	table_for_CRC[idx + i + 1] = 0xFF; //znacznik 0xFFFF końca wypełnionej tablicy table_for_CRC
 	idx = 0;
 	if (seq_tablePtr == NULL)
 		seq_tablePtr = calloc(sizeof_input_data + padding, sizeof(uint8_t));
 	if (seq_tablePtr == NULL)
-		GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //czerwona LED bêdzie stale œwieciæ - problem z przydzieleniem pamiêci
-	seq_tablePtr[sizeof_input_data + padding - 1] = 0xFF; //wstawienie znacznika na koñcu tablicy seq_tablePtr
-	input_data = &table_for_CRC[0]; //teraz bêdzie kodowana do postaci 4b6b wartoœæ device type
-	for(i = 0; i < sizeof_input_data; i++) //pêtla koduj¹ca dane do postaci 4b6b i wpisuj¹ca te dane
+		GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //czerwona LED będzie stale świecić - problem z przydzieleniem pamięci
+	seq_tablePtr[sizeof_input_data + padding - 1] = 0xFF; //wstawienie znacznika na końcu tablicy seq_tablePtr
+	input_data = &table_for_CRC[0]; //teraz będzie kodowana do postaci 4b6b wartość device type
+	for(i = 0; i < sizeof_input_data; i++) //pętla kodująca dane do postaci 4b6b i wpisująca te dane
 	{ //do tablicy seq_tablePtr
-		if (input_data == sensor_ID)   //gdy kodowane s¹ cyfry numeru ID sensora
-			loop_cnt = 1; //bedzie kodowany tylko m³odszy pó³bajt input_data
+		if (input_data == sensor_ID)   //gdy kodowane są cyfry numeru ID sensora
+			loop_cnt = 1; //bedzie kodowany tylko młodszy półbajt input_data
 		else //w przeciwnym razie 
-			loop_cnt = 2; //bêd¹ kodowane dwa pó³bajty input_data, najpierw starszy, póŸniej m³odszy
+			loop_cnt = 2; //będą kodowane dwa półbajty input_data, najpierw starszy, później młodszy
 		for (j = 0; j < loop_cnt; j++)
 		{
 			switch (loop_cnt)
 			{
 				case 1:
-								coded_nibble = input_data[idx] & 0x0F; //m³odszy pó³bajt input_data
-								break;
+				 	coded_nibble = input_data[idx] & 0x0F; //młodszy półbajt input_data
+					break;
 				case 2:
-								if (j == 0)
-									coded_nibble = (input_data[idx] & 0xF0) >> 4; //najpierw starszy pó³bajt input_data
-								else
-									coded_nibble = input_data[idx] & 0x0F; //potem m³odszy pó³bajt input_data
-								break;
-			}	//wyliczana powy¿ej zmienna coded_nibble bêdzie indeksowaæ tablicê table_4b6b_code
- 			code_4b6b = code_4b6b << 6; //ka¿dorazowe jednokrotne przesuniêcie o 6 bitów w lewo
-			code_4b6b = code_4b6b | (table_4b6b_code[coded_nibble] & 0x3F); //uwzglêdniane 6 najm³odszych bitów table_4b6b_code
+					if (j == 0)
+						coded_nibble = (input_data[idx] & 0xF0) >> 4; //najpierw starszy półbajt input_data
+					else
+						coded_nibble = input_data[idx] & 0x0F; //potem młodszy półbajt input_data
+				break;
+			}	//wyliczana powyżej zmienna coded_nibble będzie indeksować tablicę table_4b6b_code
+ 			code_4b6b = code_4b6b << 6; //każdorazowe jednokrotne przesunięcie o 6 bitów w lewo
+			code_4b6b = code_4b6b | (table_4b6b_code[coded_nibble] & 0x3F); //uwzględniane 6 najmłodszych bitów table_4b6b_code
 		}
 		idx++;
-		if (code_4b6b & 0xFC0000) //gdy powy¿sze pêtle wykona³y przesuniêcie zawartoœci code_4b6b 4 razy w lewo (czyli wype³ni³y juz 6 najstarszych bitów 3 bajtu tej zmiennej)
+		if (code_4b6b & 0xFC0000) //gdy powyższe pętle wykonały przesunięcie zawartoœci code_4b6b 4 razy w lewo (czyli wypełniły już 6 najstarszych bitów 3 bajtu tej zmiennej)
 		{
-			for (j = 0; j < 3; j++) //w tej pêtli wpisanie zakodowanej wartoœci do odpowiednich trzech kolejno nastêpuj¹cych po sobie elementów
+			for (j = 0; j < 3; j++) //w tej pętli wpisanie zakodowanej wartości do odpowiednich trzech kolejno następujących po sobie elementów
 			{
 				seq_tablePtr[next_triple + j] = (code_4b6b >> (16 - (j * 8))) & 0xFF; //tablicy wskazywanej przez seq_tablePtr
-				if ((input_data == &idx) && //gdy kodowany jest ju¿ bajt indeksu (wtedy wartoœæ idx jest paddindiem
-						(j == 2)) //i wype³niony jest ostatni bajt w tablicy seq_tablePtr
+				if ((input_data == &idx) && //gdy kodowany jest już bajt indeksu (wtedy wartość idx jest paddindiem
+						(j == 2)) //i wypełniony jest ostatni bajt w tablicy seq_tablePtr
 					seq_tablePtr[next_triple + j] = 0; //to wyzerowanie tego bajtu
 			}
-			next_triple = next_triple + j; //po zakoñczeniu wype³niania trzech elementów, bêdzie wype³niana nastêpna trójka elementów
-			code_4b6b = 0; //init zmiennej przechowuj¹cej wynik konwersji danych
+			next_triple = next_triple + j; //po zakończeniu wypełniania trzech elementów, będzie wypełniana następna trójka elementów
+			code_4b6b = 0; //init zmiennej przechowującej wynik konwersji danych
 		}
-		if ((i + 1) == sizeof(table_for_CRC[0])) //gdy ju¿ zakodowana wartoœæ device type 
+		if ((i + 1) == sizeof(table_for_CRC[0])) //gdy już zakodowana wartość device type 
 		{ 
-			input_data = sensor_ID; //bêdzie kodowana tablica z numerem ID sensora
+			input_data = sensor_ID; //będzie kodowana tablica z numerem ID sensora
 			idx = 0;
 		}
 		if ((i + 1) == (sizeof(table_for_CRC[0]) + sizeof(sensor_ID))) 
-		{  //gdy ju¿ zakodowana wartoœæ device type i ca³¹ tablica sensor_ID
+		{  //gdy już zakodowana wartość device type i cała tablica sensor_ID
 			input_data = &command;
 			idx = 0;
 		}
 		if ((i + 1) == (sizeof(table_for_CRC[0]) + sizeof(sensor_ID) + sizeof(command))) 
-		{ //gdy ju¿ zakodowana wartoœæ device type, ca³a tablica sensor_ID i bajt komendy
-			//input_data = &sizeof_params; by³o
+		{ //gdy już zakodowana wartość device type, cała tablica sensor_ID i bajt komendy
 			input_data = &page_nbr;
 			idx = 0;
 		}
-		if ((sizeof_params > 0) && //gdy istniej¹ parametry komendy
+		if ((sizeof_params > 0) && //gdy istnieją parametry komendy
 				((i + 1) == (sizeof(table_for_CRC[0]) + sizeof(sensor_ID) + sizeof(command) + sizeof(sizeof_params)))) 
 		{
 			input_data = paramsPtr;
 			idx = 0;
 		}
 		if ((CRC16 == 0) || //gdy jeszcze nie obliczone CRC16
-				(idx < 2)) //lub jeszcze pozosta³ m³odszy bajt obliczonego CRC16
+				(idx < 2)) //lub jeszcze pozostał młodszy bajt obliczonego CRC16
 		{
 			if ((i + 1) == (sizeof(table_for_CRC[0]) + sizeof(sensor_ID) + sizeof(command) + sizeof(sizeof_params) + sizeof_params)) //byæ mo¿e zamiast zmiennej sizeof_params wstawiæ licbê 64
 			{																												
@@ -320,33 +319,33 @@ uint8_t *encode_4b6b_command_params_for_Tx(uint8_t command,
 
 
 
-/*Funkcja odczytuj¹ca modu³ RFM69H przez SPI. Funkcja zwraca odczytany bajt z zaadresowanego rejestru RFM22B
+/*Funkcja odczytująca moduł RFM69H przez SPI. Funkcja zwraca odczytany bajt z zaadresowanego rejestru
 Argumenty:
 address_data: MSB ==Low - odczyt zaadresowanego rejestru RFM69H
-							7 pozosta³ych bitów - adres jednego ze 128 wewnêtrznych rejestrów modu³u RFM69H */
+	       7 pozostałych bitów - adres jednego ze 128 wewnętrznych rejestrów modułu RFM69H */
 uint8_t RFM69H_SPI_read(uint8_t address)
 {
 	uint8_t data;
-	GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = Low - select module
-	SPI_send_receive(address & 0x7F); //wys³anie MSB == Low (bêdzie odczyt) i 7-bit adresu do modu³u
+	GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = Low - select module
+	SPI_send_receive(address & 0x7F); //wysłanie MSB == Low (będzie odczyt) i 7-bit adresu do modułu
 	data = SPI_send_receive(0); //niby zapis w celu odczytu danej
-	GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = High - deselect module
+	GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = High - deselect module
 	return data;
 }
 
 
 
-/*Funkcja zapisuj¹ca modu³ RFM69H przez SPI. 
+/*Funkcja zapisująca moduł RFM69H przez SPI. 
 Argumenty:
 address_data: MSB ==High - zapis zaadresowanego rejestru RFM69H
-							7 starszych bitów - adres jednego ze 128 wewnêtrznych rejestrów modu³u RFM69H
-							8 b³odszych bitów - dana do zapisu do zaadresowanego rejestru */
+		7 starszych bitów - adres jednego ze 128 wewnętrznych rejestrów modułu RFM69H
+		8 młodszych bitów - dana do zapisu do zaadresowanego rejestru */
 void RFM69H_SPI_write(uint16_t address_data)
 {
-	GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = Low - select module
-	SPI_send_receive((address_data >> 8) | 0x80); //wys³anie MSB == High (bêdzie zapis) i 7-bit adresu do modu³u
-	SPI_send_receive(address_data & 0xFF); //wys³anie danej do modu³u
-	GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = High - deselect module
+	GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = Low - select module
+	SPI_send_receive((address_data >> 8) | 0x80); //wysłanie MSB == High (będzie zapis) i 7-bit adresu do modułu
+	SPI_send_receive(address_data & 0xFF); //wysłanie danej do modułu
+	GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = High - deselect module
 }
 
 
@@ -366,11 +365,11 @@ void BurstWrite(uint8_t adr, uint8_t *ptr, uint8_t length)
     return;
   else  
   {   
-    GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = Low - select module   
-    SPI_send_receive(adr | 0x80); //wys³anie MSB == High (bêdzie zapis) i 7-bit adresu do modu³u
+    GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = Low - select module   
+    SPI_send_receive(adr | 0x80); //wysłanie MSB == High (będzie zapis) i 7-bit adresu do modułu
     for (i = 0; i < length; i++)
 			SPI_send_receive(ptr[i]);
-    GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = High - deselect module
+    GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = High - deselect module
   }
 }
 
@@ -392,47 +391,45 @@ u8 BurstRead(u8 adr, u8 *ptr, u8 length, u8 Break)
     return 0;
   else
   {
-    GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = Low - select module   
-    SPI_send_receive(adr & 0x7F); //wys³anie MSB == Low (bêdzie odczyt) i 7-bit adresu do modu³u
+    GPIO_WriteLow(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = Low - select module   
+    SPI_send_receive(adr & 0x7F); //wysłanie MSB == Low (będzie odczyt) i 7-bit adresu do modułu
     for(i = 0; i < length; i++)
 		{
 			ptr[i] = SPI_send_receive(0);
 			if (Break)
 			{
-				i++; //by funkcja zwróci³a rzeczywist¹ iloœæ odczytanych bajtów 
+				i++; //by funkcja zwróciła rzeczywistą ilość odczytanych bajtów 
 				break;
 			}
 		}
-    GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modu³u RFM69H = High - deselect module
+    GPIO_WriteHigh(CS_RFM_Port, CS_RFM_Pin); //NSS modułu RFM69H = High - deselect module
   }
 	return i;
 }
 
 
-/*Funkcja przygotowuj¹ca nadajnik RFM69H do wys³ania sekwencji
-Funkcja zwraca true, gdy modu³ RFM69H gotowy do nadawaia; false w przeciwnym razie
+/*Funkcja przygotowująca nadajnik RFM69H do wysłania sekwencji
+Funkcja zwraca true, gdy moduł RFM69H gotowy do nadawaia; false w przeciwnym razie
 Argumenty:
-RFM69_mode - tryb pracy modu³u, mo¿e byæ CONTINUOUS lub PACKET
+RFM69_mode - tryb pracy modułu, może być CONTINUOUS lub PACKET
 */
 uint8_t config_RFM69H_for_TX(uint8_t RFM69_mode)
 {
 //	static uint8_t version;
-	GPIO_WriteHigh(RESET_RFM_Port, RESET_RFM_Pin); //== High - reset modu³u
+	GPIO_WriteHigh(RESET_RFM_Port, RESET_RFM_Pin); //== High - reset modułu
 	for(system_tick = 0; system_tick < 1;); //zaczekanie 1 ms
-	GPIO_WriteLow(RESET_RFM_Port, RESET_RFM_Pin); //== Low - koniec resetu modu³u
+	GPIO_WriteLow(RESET_RFM_Port, RESET_RFM_Pin); //== Low - koniec resetu modułu
 	for(system_tick = 0; system_tick < 6;); //zaczekanie 5 ms
 	RFM69H_EntryTx(RFM69_mode);
 	system_tick = 0;
-	while (gb_WaitStableFlag == 0x0F) //w tej pêtli oczekiwanie na gotowoœæ modu³u RFM69H do nadawania
+	while (gb_WaitStableFlag == 0x0F) //w tej pętli oczekiwanie na gotowość modułu RFM69H do nadawania
 	{
 		gb_SysTimer_1S = gb_SysTimer_1S - (system_tick / 1000);
 		if (system_tick == 1000)
 		  system_tick = 0;
 		RFM69H_TxWaitStable();
 	}
-	//poni¿sze w celu próby
-//	version = RFM69H_SPI_read(0x10); //powinna byæ odczytana wartoœæ == 0x24
-	//version = RFM69H_SPI_read(0x01); //odczyt RegOpMode, by sprawdziæ, czy modu³ jest w trybie TX
+
 	return gb_WaitStableFlag;
 }
 
@@ -442,29 +439,29 @@ uint8_t config_RFM69H_for_TX(uint8_t RFM69_mode)
 /********************************************************************/
 
 
-/*Funkcja migaj¹ca zielonym LED-em
+/*Funkcja migająca zielonym LED-em
 Argument 
-LED_on_off = 0xFFFF - led œwieci; = 0x0 - led zgaszona
-Zale¿nie od wyboru bitu tej zmiennej; LED bêdzie migaæ z ró¿n¹ czêstotliwoœci¹*/
+LED_on_off = 0xFFFF - led świeci; = 0x0 - led zgaszona
+Zależnie od wyboru bitu tej zmiennej; LED będzie migać z różną częstotliwością*/
 void greenLEDblink_func(uint16_t LED_on_off)
 {
 	static uint8_t LED_old_state;
-	if (LED_old_state != (LED_on_off & 0x02)) //gdy zapamiêtany stan LED != od nowego, zadanego 
-	{ //zmienn¹ LED_on_off, to odpowiednia zmiana stanu LED stosownie do stanu  2. bitu zmiennej LED_on_off
+	if (LED_old_state != (LED_on_off & 0x02)) //gdy zapamiętany stan LED != od nowego, zadanego 
+	{ //zmienną LED_on_off, to odpowiednia zmiana stanu LED stosownie do stanu  2. bitu zmiennej LED_on_off
 		if (LED_on_off & 0x02)
 			GPIO_WriteLow(Green_LED_GPIO_Port, Green_LED_Pin);
 		else
 			GPIO_WriteHigh(Green_LED_GPIO_Port, Green_LED_Pin);
 	}
-	LED_old_state = (LED_on_off & 0x02); //i zapamiêtanie nowego stanu LED
+	LED_old_state = (LED_on_off & 0x02); //i zapamiętanie nowego stanu LED
 }
 
 	
 
-/* Funkcja, która bêdzie wysy³aæ sekwencjê glikemii
-Funkcja zwraca iloœæ powtórek wys³ania sekwencji glikemii
+/* Funkcja, która będzie wysyłać sekwencję glikemii
+Funkcja zwraca ilość powtórek wysłania sekwencji glikemii
 Argumenty: 
-seq_sent_successPtr - wskaŸnik do znacznika: == true, gdy uda³o siê wys³aæ sekwencjê glikemii; == false w przeciwnym razie*/
+seq_sent_successPtr - wskaźnik do znacznika: == true, gdy udało się wysłać sekwencję glikemii; == false w przeciwnym razie*/
 uint16_t send_sequence_func(uint8_t *seq_sent_successPtr)
 {
 	int8_t	idx = 0;
@@ -476,9 +473,9 @@ uint16_t send_sequence_func(uint8_t *seq_sent_successPtr)
 	static uint8_t nbr_seq;
 	static uint8_t inc, dec;
 	if ((pb4sem) && 
-			(!(sent_sequence))) //gdy jeszcze nie wys³ana sekwencja glikemii
+			(!(sent_sequence))) //gdy jeszcze nie wysłana sekwencja glikemii
 	{
-		GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //zaœwiecenie czerwonej LED - pocz¹tek wysy³ania sekwecji
+		GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //zaświecenie czerwonej LED - początek wysyłania sekwecji
 		if (!(setup_for_Tx)) //gdy setup do nadawania jeszcze nie zrobiony
 		{
 			memcpy(&inp_data_to_encode[idx], marker, sizeof(marker));
@@ -497,59 +494,58 @@ uint16_t send_sequence_func(uint8_t *seq_sent_successPtr)
 			idx = idx + sizeof(raw_data);
 			memcpy(&inp_data_to_encode[idx], inp_seq, sizeof(inp_seq));
 			idx = idx + sizeof(inp_seq);
-			seq_to_send = modified_encode_4b6b_command_params_for_Tx(inp_data_to_encode, idx, seq_to_send); //wpisanie enkodowanych wartoœci do tablicy seq_to_send
-			//seq_to_send = encode_4b6b_command_params_for_Tx(command, 0x0D/*firmware nadajnika*/, inp_seq, sizeof(inp_seq), seq_to_send); //wpisanie enkodowanych wartoœci do tablicy seq_to_send
-			if (config_RFM69H_for_TX(PACKET)) //modu³ jest gotowy do wys³ania komendy po konfigu
+			seq_to_send = modified_encode_4b6b_command_params_for_Tx(inp_data_to_encode, idx, seq_to_send); //wpisanie enkodowanych wartości do tablicy seq_to_send
+			if (config_RFM69H_for_TX(PACKET)) //moduł jest gotowy do wysłania komendy po konfigu
 			{
 				GPIO_WriteHigh(Red_LED_GPIO_Port, Red_LED_Pin); //zgaszenie czerwonej LED
-				setup_for_Tx = true; //by ju¿ nie powtarzaæ konfigu modu³u RFM69H
-				send_seq_cnt = 0; //wyzerowanie licznika wys³añ komendy
-				GPIO_Init(DIO_RFM_Port, DIO1_RFM_Pin, GPIO_MODE_IN_PU_IT); /*PC1 bêdzie wyzwalaæ przerwanie zboczem narastaj¹cym
-				Na PC1 jest sygna³ FIFO_Level. Zbocze narastaj¹ce pojawia siê, gdy iloœæ danych w FIFO przekroczy nastawiony próg - kryterium startu transmisji */
-				GPIO_Init(DIO_RFM_Port, DIO0_RFM_Pin, GPIO_MODE_IN_PU_IT); /*PC2 bêdzie wyzwalaæ przerwanie zboczem narastaj¹cym
-				Na PC2 jest sygna³ Packet_sent. Zbocze narastaj¹ce pojawia siê, gdy FIFO jest ca³kowicie puste i ostatni bit z rejestru przesuwaj¹cego zosta³ wys³any - kryterium koñca transmisji*/
+				setup_for_Tx = true; //by już nie powtarzać konfigu modułu RFM69H
+				send_seq_cnt = 0; //wyzerowanie licznika wysłań komendy
+				GPIO_Init(DIO_RFM_Port, DIO1_RFM_Pin, GPIO_MODE_IN_PU_IT); /*PC1 będzie wyzwalać przerwanie zboczem narastającym
+				Na PC1 jest sygnał FIFO_Level. Zbocze narastające pojawia się, gdy ilość danych w FIFO przekroczy nastawiony próg - kryterium startu transmisji */
+				GPIO_Init(DIO_RFM_Port, DIO0_RFM_Pin, GPIO_MODE_IN_PU_IT); /*PC2 będzie wyzwalać przerwanie zboczem narastającym
+				Na PC2 jest sygnał Packet_sent. Zbocze narastające pojawia się, gdy FIFO jest całkowicie puste i ostatni bit z rejestru przesuwającego został wysłany - kryterium końca transmisji*/
 			}
-			else //modu³ RFM69H nie jest gotowy do nadawania
+			else //moduł RFM69H nie jest gotowy do nadawania
 			{
 				setup_for_Tx = false;  
-				GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //czerwona LED bêdzie stale œwieciæ - problem z konfigiem modu³u RFM69H
+				GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //czerwona LED będzie stale świecić - problem z konfigiem modułu RFM69H
 				free(seq_to_send);
 				seq_to_send = NULL;
-				*seq_sent_successPtr = false; //nie uda³o siê wys³aæ komendy budz¹cej pompê
+				*seq_sent_successPtr = false;
 			}
 		}
-		else //ju¿ zrobiony setup modu³u RFM69 do nadawania
+		else //już zrobiony setup modułu RFM69 do nadawania
 		{
-			while(start_TX_RX_seq_sem); //zaczekanie na gotowoœæ przyjêcia nowych danych przez FIFO
-			BurstWrite(0x00, seq_to_send, 52); //wys³anie sekwencji komendy do FIFO
-			while(!(end_TX_RX_seq_sem)); //zaczekanie na koniec transmisji danych z FIFO przez modu³ RFM69H
+			while(start_TX_RX_seq_sem); //zaczekanie na gotowość przyjęcia nowych danych przez FIFO
+			BurstWrite(0x00, seq_to_send, 52); //wysłanie sekwencji komendy do FIFO
+			while(!(end_TX_RX_seq_sem)); //zaczekanie na koniec transmisji danych z FIFO przez moduł RFM69H
 			send_seq_cnt++;
 			if (send_seq_cnt > 0x80)
-				sent_sequence = true;  //koniec wysy³ania sekwencji
+				sent_sequence = true;  //koniec wysyłania sekwencji
 			else
-				sent_sequence = false;  //by przygotowaæ do powtórki wysy³ania sekwencji glikemii
-			end_TX_RX_seq_sem = 0; //wyczyszczenie znacznika koñca transmisji danych z FIFO
-			start_TX_RX_seq_sem = 0; //wyczyszczenie znacznika pocz¹tku zapisu danych do FIFO
-			if (sent_sequence) //gdy ju¿ wys³ana sekwencja glikemii
+				sent_sequence = false;  //by przygotować do powtórki wysyłania sekwencji glikemii
+			end_TX_RX_seq_sem = 0; //wyczyszczenie znacznika końca transmisji danych z FIFO
+			start_TX_RX_seq_sem = 0; //wyczyszczenie znacznika początku zapisu danych do FIFO
+			if (sent_sequence) //gdy już wysłana sekwencja glikemii
 			{
-				setup_for_Tx = false; //by przygotowaæ do ponownego setupu modu³u RFM69H do nadawania
+				setup_for_Tx = false; //by przygotować do ponownego setupu modułu RFM69H do nadawania
 				send_seq_cnt = 0;
-				RFM69H_Sleep(); //prze³¹czenie RFM69H w tryb Sleep
+				RFM69H_Sleep(); //przełączenie RFM69H w tryb Sleep
 			}
 		}
 	}
-	if ((pb4sem) && //gdy ma byæ wys³ana kolejna sekwencja
+	if ((pb4sem) && //gdy ma być wysłana kolejna sekwencja
 			(sent_sequence))
 	{
-		idx = sizeof(inp_seq) - 3; //indeks ostatniej dwójki bajtów przed koñcz¹cym zerem w inp_seq
-		while ((idx - 2) >= 6) //pêtla przesuwaj¹ca dwójki bajtów w tablicy inp_seq z pozycji (idx - 2) na pozycjê idx
-		{  //wykonuje siê tak d³ugo, a¿ (idx - 2) < 6
+		idx = sizeof(inp_seq) - 3; //indeks ostatniej dwójki bajtów przed kończącym zerem w inp_seq
+		while ((idx - 2) >= 6) //pętla przesuwająca dwójki bajtów w tablicy inp_seq z pozycji (idx - 2) na pozycję idx
+		{  //wykonuje się tak długo, aż (idx - 2) < 6
 			memcpy(&inp_seq[idx], &inp_seq[idx - 2], 2);
 			idx = idx - 2;
 		}
-		memcpy(&inp_seq[idx], inp_seq, 2); //przesuniêcie dwójki bajtów z pocz¹tku tablicy inp_seq na pozycjê wskazywan¹ przez idx(pominiêcie nastêpnych 4 bajtów za pocz¹tkow¹ dwójk¹)
-		memcpy(inp_seq, raw_data, 2); //i skopiowanie na pocz¹tek tablicy inp_seq dwójki bajtów z tablicy raw_data
-		nbr_seq = (nbr_seq + 0x10) & 0x70; //zwiêkszenie numeru sekwencji (starsze 3 bity) i wyzerowanie znacznika powtórki tej samej sekwencji (4 m³odsze bity)
+		memcpy(&inp_seq[idx], inp_seq, 2); //przesunięcie dwójki bajtów z początku tablicy inp_seq na pozycję wskazywaną przez idx(pominięcie następnych 4 bajtów za początkową dwójką)
+		memcpy(inp_seq, raw_data, 2); //i skopiowanie na początek tablicy inp_seq dwójki bajtów z tablicy raw_data
+		nbr_seq = (nbr_seq + 0x10) & 0x70; //zwiększenie numeru sekwencji (starsze 3 bity) i wyzerowanie znacznika powtórki tej samej sekwencji (4 młodsze bity)
 		sequence[0] = nbr_seq & 0x70;
 		word = (raw_data[0] << 8) | raw_data[1];
 		if (word >= 6000)
@@ -569,7 +565,7 @@ uint16_t send_sequence_func(uint8_t *seq_sent_successPtr)
 		raw_data[0] = word >> 8;
 		raw_data[1] = word & 0xFF;
 	}
-	if ((pb4sem) && //przygotowanie do wys³ania nastêpnej sekwencji po naciœniêciu przycisku
+	if ((pb4sem) && //przygotowanie do wysłania następnej sekwencji po naciśnięciu przycisku
 			(sent_sequence))
 	{
 		GPIO_WriteHigh(Red_LED_GPIO_Port, Red_LED_Pin); //zgaszenie czerwonej LED
