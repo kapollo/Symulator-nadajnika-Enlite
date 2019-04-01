@@ -14,16 +14,15 @@
  cyklu sinusoidy i jest wyliczony na podstawie zgłoszeń pompy o utracie sygnału i jego dokładność wynosi 0,5 sekundy wg wewnętrznego system_tick!!!  
  
  Dołączenie otoczenia do mikrokontrolera:
- piny									otoczenie
- 
+ piny:		      otoczenie:
  PD0(Out) ----------> katoda zielonej LED wskaźnikowej (aktywny poziom niski)
+ PD2(Out) ----------> katoda czerwonej LED wskaźnikowej (aktywny poziom niski)
  
- 
- piny									programator
+ piny:		      programator:
  PD1 ---------------> SWIM
- NRST --------------> NRST
+ NRST --------------> RST
  
- piny									moduł RFM69H
+ piny:		      moduł RFM69H:
  PC7(MISO) ---------> MISO
  PC6(MOSI) ---------> MOSI
  PC5(SCK) ----------> SCK
@@ -49,7 +48,6 @@ void main(void)
 	EXTI_init();
 	SPI_init();
 	Timer2_init();
-	//init_crc8();
 	tick_500ms = 0;
 	
 	enableInterrupts();
@@ -59,29 +57,29 @@ void main(void)
 			  (time_stamp != tick_500ms))
 		{
 			switch (tick_500ms)
-			{                    //działające na dużej płytce
-				case 0:    // 00		0
-				case 616:  // 10		618
-				case 1390: // 20		1400
-				case 1902: // 30		1914		
-				case 2402: // 40		2420
-				case 3092: // 50		3116
-				case 3646: // 60		3672
-				case 4144: // 70		4174
-				case 4786: // 00		4824
-				case 5406: // 10		5446
-				case 6180: // 20		6224
-				case 6692: // 30		6742
-				case 7192: // 40		7244
-				case 7882: // 50		7938
-				case 8434: // 60		8496
-				case 8934: // 70		8998
-				case 9578: // 00		9648
-								pb4sem = true;
-								time_stamp = tick_500ms;
-								if (tick_500ms == 9578)
-									tick_500ms = 0;
-								break;
+			{                    
+				case 0:    // 00
+				case 616:  // 10
+				case 1390: // 20
+				case 1902: // 30	
+				case 2402: // 40
+				case 3092: // 50
+				case 3646: // 60
+				case 4144: // 70
+				case 4786: // 00
+				case 5406: // 10
+				case 6180: // 20
+				case 6692: // 30
+				case 7192: // 40
+				case 7882: // 50
+				case 8434: // 60
+				case 8934: // 70
+				case 9578: // 00
+					pb4sem = true;
+					time_stamp = tick_500ms;
+					if (tick_500ms == 9578)
+					    tick_500ms = 0;
+				break;
 			}
 		}
 		send_seq_cnt = send_sequence_func(NULL);
