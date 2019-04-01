@@ -4,10 +4,10 @@
 
 
 
-#define Green_LED_Pin						GPIO_PIN_0
-#define Green_LED_GPIO_Port			GPIOD
-#define Red_LED_Pin							GPIO_PIN_2
-#define Red_LED_GPIO_Port				GPIOD
+#define Green_LED_Pin           GPIO_PIN_0
+#define Green_LED_GPIO_Port     GPIOD
+#define Red_LED_Pin             GPIO_PIN_2
+#define Red_LED_GPIO_Port       GPIOD
 
 #define Pushbutton4_Pin						GPIO_PIN_4 // przycisk "4"
 #define Pushbutton_GPIO_Port			GPIOB
