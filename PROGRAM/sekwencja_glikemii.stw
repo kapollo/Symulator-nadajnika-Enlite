@@ -1,0 +1,12 @@
+;	STMicroelectronics Workspace file
+
+[Version]
+Keyword=ST7Workspace-V0.7
+
+[Project0]
+Filename=sekwencja_glikemii.stp
+Dependencies=
+[Options]
+ActiveProject=sekwencja_glikemii
+ActiveConfig=Debug
+AddSortedElements=1
