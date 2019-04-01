@@ -5,17 +5,17 @@
 #include <stdlib.h>
 #include "DK_RFM.h"
 
-volatile uint8_t pb4sem; //znacznik naciśnięcia przycisku "4"
+volatile uint8_t pb4sem; //znacznik naciśnięcia przycisku "4" pilota MED-LINK (tutaj symulacja)
 volatile uint16_t system_tick, tick_500ms; //liczniki inkrementowane przerwaniami z przepełnienia timera2			
 volatile uint8_t start_TX_RX_seq_sem; //znacznik rozpoczęcia transmisji przez moduł RFM69HCW
 volatile uint8_t end_TX_RX_seq_sem; //znacznik zakończenia transmisji przez moduł RFM69HCW
 
 const 
 uint8_t marker[] = {0xAB}; //znacznik danych z nadajnika Enlite w trybie normalnej pracy, bez rozruchu
-uint8_t flag[] = {0x0F}; //stała flaga 0F
+uint8_t flag[] = {0x0F}; //stała flaga 0F, nieznany parametr
 uint8_t sensor_ID[] = {0x26, 0x6B, 0x2C}; //ID nadajnika 0x266B2C = 2517804
 uint8_t firmware[] = {0x0D}; //wersja firmware 1.3 nadajnika
-uint8_t any_data[] = {0x0E, 0x1E}; //stałe bajty danych
+uint8_t any_data[] = {0x0E, 0x1E}; //stałe bajty danych, nieznane, do sprawdzenia
 uint8_t sequence[] = {0x00}; //numery 8 kolejnych sekwencji: 00, 10, 20, 30, 40, 50, 60, 70
 uint8_t raw_data[] = {0x0B, 0xB6}; //aktualny pomiar, dane surowe- raw data
 uint8_t inp_seq[] = {0x0D, 0x4D, 0x00, 0x5C, 0x5C, 0xCE, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D,   //pozostałe dane z nadajnika, poziom baterii
@@ -61,7 +61,23 @@ static const uint16_t crc16_table[] = // Lookup table for CRC-16 calculation wit
 
 
 static const uint8_t table_4b6b_code[] = {0b00010101, //0 //dwa najstarsze bity są ignorowane
-																					0b00011100}; //
+					  0b00110001, //1
+					  0b00110010, //2
+					  0b00100011, //3
+					  0b00110100, //4
+					  0b00100101, //5
+					  0b00100110, //6
+					  0b00010110, //7
+					  0b00011010, //8
+					  0b00011001, //9
+					  0b00101010, //A
+					  0b00001011, //B
+					  0b00101100, //C
+					  0b00001101, //D
+					  0b00001110, //E
+					  0b00011100}; //F
+
+
 /*Funkcja licząca CRC-16 i zwracająca wartość CRC
 Argumenty;
 data - wskaźnik do tablicy z danymi, dla których ma być policzone CRC
@@ -111,7 +127,7 @@ uint8_t *modified_encode_4b6b_command_params_for_Tx(uint8_t *inp_data_to_encodeP
 
 	i = 0; //wyzerowanie licznika poniższej pętli
 	while ((sizeof_inp_data_to_encode> 0) && //gdy liczba dodatkowych parametrów > 0
-				 (i < sizeof_inp_data_to_encode)) //i jeszcze nie wszystkie parametry zostały przepisane do tablicy table_for_CRC
+		(i < sizeof_inp_data_to_encode)) //i jeszcze nie wszystkie parametry zostały przepisane do tablicy table_for_CRC
 	{
 		table_for_CRC[i] = inp_data_to_encodePtr[i]; //to przepisywanie parametrów do tablicy table_for_CRC
 		i++; //zwiększenie licznika pętli
@@ -128,7 +144,7 @@ uint8_t *modified_encode_4b6b_command_params_for_Tx(uint8_t *inp_data_to_encodeP
 		seq_tablePtr[sizeof_input_data + padding - 1] = 0xFF; //wstawienie znacznika na końcu tablicy seq_tablePtr
 		input_data = inp_data_to_encodePtr; //teraz będzie kodowana do postaci 4b6b zawartość tablicy inp_data_to_encodePtr
 		for(i = 0; i < sizeof_input_data; i++) //pętla kodująca dane do postaci 4b6b i wpisująca te dane
-		{ //do tablicy seq_tablePtr
+		{                                      //do tablicy seq_tablePtr
 			loop_cnt = 2; //będą kodowane dwa półbajty input_data, najpierw starszy, później młodszy
 			for (j = 0; j < loop_cnt; j++)
 			{
@@ -247,7 +263,7 @@ void BurstWrite(uint8_t adr, uint8_t *ptr, uint8_t length)
 u8 BurstRead(u8 adr, u8 *ptr, u8 length, u8 Break)
 {
   u8 i;
-  if(length <= 1)                                            //length must more than one
+  if(length <= 1)                            //length must more than one
     return 0;
   else
   {
@@ -307,7 +323,7 @@ void greenLEDblink_func(uint16_t LED_on_off)
 {
 	static uint8_t LED_old_state;
 	if (LED_old_state != (LED_on_off & 0x02)) //gdy zapamiętany stan LED != od nowego, zadanego 
-	{ //zmienną LED_on_off, to odpowiednia zmiana stanu LED stosownie do stanu  2. bitu zmiennej LED_on_off
+	{                                         //zmienną LED_on_off, to odpowiednia zmiana stanu LED stosownie do stanu  2. bitu zmiennej LED_on_off
 		if (LED_on_off & 0x02)
 			GPIO_WriteLow(Green_LED_GPIO_Port, Green_LED_Pin);
 		else
@@ -333,7 +349,7 @@ uint16_t send_sequence_func(uint8_t *seq_sent_successPtr)
 	static uint8_t nbr_seq;
 	static uint8_t inc, dec;
 	if ((pb4sem) && 
-			(!(sent_sequence))) //gdy jeszcze nie wysłana sekwencja glikemii
+		(!(sent_sequence))) //gdy jeszcze nie wysłana sekwencja glikemii
 	{
 		GPIO_WriteLow(Red_LED_GPIO_Port, Red_LED_Pin); //zaświecenie czerwonej LED - początek wysyłania sekwecji
 		if (!(setup_for_Tx)) //gdy setup do nadawania jeszcze nie zrobiony
