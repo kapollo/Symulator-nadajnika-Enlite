@@ -19,16 +19,14 @@ uint8_t any_data[] = {0x0E, 0x1E}; //stałe bajty danych
 uint8_t sequence[] = {0x00}; //numery 8 kolejnych sekwencji: 00, 10, 20, 30, 40, 50, 60, 70
 uint8_t raw_data[] = {0x0B, 0xB6}; //aktualny pomiar, dane surowe- raw data
 uint8_t inp_seq[] = {0x0D, 0x4D, 0x00, 0x5C, 0x5C, 0xCE, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D,   //pozostałe dane z nadajnika, poziom baterii
-										 0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x00}; // i 8 poprzednich raw data
+		     0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x0D, 0x4D, 0x00}; // i 8 poprzednich raw data
 uint8_t inp_data_to_encode[32] = {0};
-																		 
-
 uint8_t *seq_to_send = NULL;
 										
 static const uint8_t const_table[] = {0xFF, 0xFF};										
 
 static const uint16_t crc16_table[] = // Lookup table for CRC-16 calculation with polynomial 0x1021.
- {0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
+       {0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
 	0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
 	0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6,
 	0x9339, 0x8318, 0xB37B, 0xA35A, 0xD3BD, 0xC39C, 0xF3FF, 0xE3DE,
@@ -63,9 +61,6 @@ static const uint16_t crc16_table[] = // Lookup table for CRC-16 calculation wit
 
 
 static const uint8_t table_4b6b_code[] = {0b00010101, //0 //dwa najstarsze bity są ignorowane
-																					0b00110001, //1
-																					0b00001101, //D
-																					0b00001110, //E
 																					0b00011100}; //
 /*Funkcja licząca CRC-16 i zwracająca wartość CRC
 Argumenty;
@@ -104,8 +99,8 @@ uint8_t *modified_encode_4b6b_command_params_for_Tx(uint8_t *inp_data_to_encodeP
 	uint32_t code_4b6b = 0; //3 najmłodsze bajty będą przechowywać wynik konwersji danych na kod 4b6b, teraz init początkową wartością
 	uint8_t table_for_CRC[51]; 
 	uint8_t i, j, idx, sizeof_input_data,
-					loop_cnt, coded_nibble,  padding,
-					next_triple = 0;	//init tej zmiennej
+		loop_cnt, coded_nibble,  padding,
+		next_triple = 0;	//init tej zmiennej
 	uint8_t hi_byte, lo_byte;
 	uint16_t CRC16 = 0; //init tej zmiennej
 	uint8_t *input_data = NULL;
@@ -195,15 +190,13 @@ sizeof_params - wielkość tablicy z dodatkowymi parametrami
 seq_tablePtr - wskaźnik do tablicy, w której będą zakodowane dane do wysłania */
 uint8_t *encode_4b6b_command_params_for_Tx(uint8_t command, 
 																					 uint8_t page_nbr,
-																					 uint8_t *paramsPtr,
-																					 uint8_t sizeof_params,
 																					 uint8_t *seq_tablePtr)
 {
 	uint32_t code_4b6b = 0; //3 najmłodsze bajty będą przechowywać wynik konwersji danych na kod 4b6b, teraz init początkową wartością
 	uint8_t table_for_CRC[51];
 	uint8_t i, j, idx, sizeof_input_data,
-					loop_cnt, coded_nibble,  padding,
-					next_triple = 0;	//init tej zmiennej
+		loop_cnt, coded_nibble,  padding,
+		next_triple = 0;	//init tej zmiennej
 	uint8_t hi_byte, lo_byte;
 	uint16_t CRC16 = 0; //init tej zmiennej
 	uint8_t *input_data = NULL;
@@ -445,7 +438,7 @@ uint8_t config_RFM69H_for_TX(uint8_t RFM69_mode)
 
 
 /********************************************************************/
-/*           Poni¿ej funkcje tasków                                 */
+/*           Poniżej funkcje tasków                                 */
 /********************************************************************/
 
 
