@@ -1,39 +1,36 @@
- /* Program symulujπcy nadawanie pakietÛw z danymi glikemii z nadajnika Enlite z pod≥πczonym sensorem, napisany na mikrokontroler STM8S207K8.
- Nadajnikiem jest modu≥ RFM69HCW pracujπcy w trybie Packet Mode.
+ /* Program symulujƒÖcy nadawanie pakiet√≥w z danymi glikemii z nadajnika Enlite z pod≈ÇƒÖczonym sensorem, napisany na mikrokontroler STM8S207K8.
+ Nadajnikiem jest modu≈Ç RFM69HCW pracujƒÖcy w trybie Packet Mode.
  
- !!! Ostatecznie program nadaje tylko g≥Ûwne pakiety bez powtÛrzeÒ ramek naúladujπc sinusoidÍ. W przybliøeniu dziewiÍÊ pomiarÛw w gÛrÍ i dziewiÍc w dÛ≥.
- Program nie jest idealnym odzwierciedleniem prawdziwego nadajnika Enlite, bo nie wysy≥a powtÛrzeÒ kaødego pomiaru, ale wystarcza to do utrzymania ciπg≥oúci pomiarÛw.
- Zmienia sie tylko raw data dla aktualnego pomiaru i pompa potrafi zgubiÊ sygna≥, pomimo tego, øe podczas transmisji 
- jest wysy≥ana paczka powtÛrzonych identycznych ramek przez oko≥o 4 sekundy (kilkaset ramek). Rzeczywisty nadajnik wysy≥a 
- dok≥adnie jednπ ramkÍ z danymi i pompa dok≥adnie wie, kiedy ma siÍ spodziewaÊ tych danych. Program jest wystarczajπcym symulatorem dla potrzeb testÛw
- CGM w przypadku pracy z pompπ Veo 754 z firmware 3.1E. Program korzysta z wewnÍtrznego oscylatora RC, wiÍc jego zegar nie jest super dok≥adny.
- Mimo tego w okresie 40 minut, ktÛre dla pompy sπ maksymalnym czasem bez komunikatu o utracie sygna≥u nadajnika program dzia≥a prawid≥owo i pompa
- ma ciπg≥oúÊ pomiarÛw. Nawet gdy wystπpi utrata kilku pomiarÛw, to po ponownej synchronizacji dane raw data uzupe≥niπ siÍ i tym samym program moøe dzia≥aÊ nieprzerwanie
- przez ca≥y cykl 6-dniowej pracy sensora. W programie symulatora nie ma sytuacji rozruchu sensora. Po otrzymaniu pierwszego sygna≥u pompa od razu
- zg≥asza potrzebÍ kalibracji i za 15 minut mamy juz poziom glikemii dostÍpny na ekranie pompy. Poniøszy switch jest wyliczony do zrobienia pe≥nego
- cyklu sinusoidy i jest wyliczony na podstawie zg≥oszeÒ pompy o utracie sygna≥u i jego dok≥adnoúÊ wynosi 0,5 sekundy wg wewnÍtrznego system_tick!!!  
+ !!! Ostatecznie program nadaje tylko g≈Ç√≥wne pakiety bez powt√≥rze≈Ñ ramek na≈õladujƒÖc sinusoidƒô. W przybli≈ºeniu dziewiƒôƒá pomiar√≥w w g√≥rƒô i dziewiƒôc w d√≥≈Ç.
+ Program nie jest idealnym odzwierciedleniem prawdziwego nadajnika Enlite, bo nie wysy≈Ça powt√≥rze≈Ñ ka≈ºdego pomiaru, ale wystarcza to do utrzymania ciƒÖg≈Ço≈õci pomiar√≥w.
+ Zmienia sie tylko raw data dla aktualnego pomiaru i pompa potrafi zgubiƒá sygna≈Ç, pomimo tego, ≈ºe podczas transmisji 
+ jest wysy≈Çana paczka powt√≥rzonych identycznych ramek przez oko≈Ço 4 sekundy (kilkaset ramek). Rzeczywisty nadajnik wysy≈Ça 
+ dok≈Çadnie jednƒÖ ramkƒô z danymi i pompa dok≈Çadnie wie, kiedy ma siƒô spodziewaƒá tych danych. Program jest wystarczajƒÖcym symulatorem dla potrzeb test√≥w
+ CGM w przypadku pracy z pompƒÖ Veo 754 z firmware 3.1E. Program korzysta z wewnƒôtrznego oscylatora RC, wiƒôc jego zegar nie jest super dok≈Çadny.
+ Mimo tego w okresie 40 minut, kt√≥re dla pompy sƒÖ maksymalnym czasem bez komunikatu o utracie sygna≈Çu nadajnika program dzia≈Ça prawid≈Çowo i pompa
+ ma ciƒÖg≈Ço≈õƒá pomiar√≥w. Nawet gdy wystƒÖpi utrata kilku pomiar√≥w, to po ponownej synchronizacji dane raw data uzupe≈ÇniƒÖ siƒô i tym samym program mo≈ºe dzia≈Çaƒá nieprzerwanie
+ przez ca≈Çy cykl 6-dniowej pracy sensora. W programie symulatora nie ma sytuacji rozruchu sensora. Po otrzymaniu pierwszego sygna≈Çu pompa od razu
+ zg≈Çasza potrzebƒô kalibracji i za 15 minut mamy juz poziom glikemii dostƒôpny na ekranie pompy. Poni≈ºszy switch jest wyliczony do zrobienia pe≈Çnego
+ cyklu sinusoidy i jest wyliczony na podstawie zg≈Çosze≈Ñ pompy o utracie sygna≈Çu i jego dok≈Çadno≈õƒá wynosi 0,5 sekundy wg wewnƒôtrznego system_tick!!!  
  
- Do≥πczenie otoczenia do mikrokontrolera:
+ Do≈ÇƒÖczenie otoczenia do mikrokontrolera:
  piny									otoczenie
  
- PD0(Out) ----------> katoda zielonej LED wskaünikowej (aktywny poziom niski)
+ PD0(Out) ----------> katoda zielonej LED wska≈∫nikowej (aktywny poziom niski)
  
  
  piny									programator
  PD1 ---------------> SWIM
  NRST --------------> NRST
  
- piny									modu≥ RFM69H
+ piny									modu≈Ç RFM69H
  PC7(MISO) ---------> MISO
  PC6(MOSI) ---------> MOSI
  PC5(SCK) ----------> SCK
  PC4(CS) -----------> NSS
  PC3 ---------------> RESET (aktywny stan wysoki)
- PC1(IN) -----------> DIO1 Packet Mode: wyjúcie FifoLevel (Set when the number of bytes in the FIFO strictly
-																													exceeds FifoThreshold; else cleared) z modu≥u RFM69H 
-													 Continuous Mode: (wyjúcie z modu≥u RFM69H zegara synchronizujπcego bity sekwencji nadawczej
-													 Poziom na DIO2 (Data) jest prÛbkowany przy kaødym narastajπcym zboczu tego zegara, moøe siÍ zmieniaÊ przy opadajπcym zboczu)
- PC2(IN) -----------> DIO0 Packet Mode: wyjúcie PacketSent (Set in Tx when the complete packet has been sent.
+ PC1(IN) -----------> DIO1 Packet Mode: wyj≈õcie FifoLevel (Set when the number of bytes in the FIFO strictly
+ PC2(IN) -----------> DIO0 Packet Mode: wyj≈õcie PacketSent (Set in Tx when the complete packet has been sent.
 																														cleared when exiting Tx) 
 */
 
@@ -46,7 +43,7 @@
 void main(void)
 {
 	uint8_t send_seq_cnt = 0;
-	uint16_t time_stamp = 0xFFFF; //init, by by≥o rÛøne od wartoúci w tick_500ms
+	uint16_t time_stamp = 0xFFFF; //init, by by≈Ço r√≥≈ºne od warto≈õci w tick_500ms
 	CLKs_config();
 	GPIO_init();
 	EXTI_init();
@@ -56,13 +53,13 @@ void main(void)
 	tick_500ms = 0;
 	
 	enableInterrupts();
-	while(1)  //g≥Ûwna pÍtla programu
+	while(1)  //g≈Ç√≥wna pƒôtla programu
 	{
 		if ((!(pb4sem)) &&
 			  (time_stamp != tick_500ms))
 		{
 			switch (tick_500ms)
-			{                    //dzia≥ajπce na duøej p≥ytce
+			{                    //dzia≈ÇajƒÖce na du≈ºej p≈Çytce
 				case 0:    // 00		0
 				case 616:  // 10		618
 				case 1390: // 20		1400
@@ -89,10 +86,10 @@ void main(void)
 		}
 		send_seq_cnt = send_sequence_func(NULL);
 		greenLEDblink_func(send_seq_cnt);
-		if (send_seq_cnt == 0) //gdy nie jest wysy≥ana sekwencja glikemii
+		if (send_seq_cnt == 0) //gdy nie jest wysy≈Çana sekwencja glikemii
 		{
-			if (tick_500ms & 1) //gdy nieparzysta wartoúÊ tick_500ms
-				GPIO_WriteLow(Green_LED_GPIO_Port, Green_LED_Pin); //zaúwiecenie zielonej LED
+			if (tick_500ms & 1) //gdy nieparzysta warto≈õƒá tick_500ms
+				GPIO_WriteLow(Green_LED_GPIO_Port, Green_LED_Pin); //za≈õwiecenie zielonej LED
 			else
 				GPIO_WriteHigh(Green_LED_GPIO_Port, Green_LED_Pin); //zgaszenie zielonej LED
 		}
